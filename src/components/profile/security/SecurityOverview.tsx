@@ -19,7 +19,7 @@ export function SecurityOverview({ user }: SecurityOverviewProps) {
         <div className="flex items-center space-x-2">
           <span className="text-sm font-medium text-gray-700">Security Score:</span>
           <div className="flex items-center space-x-1">
-            {[...Array(5)].map((_, i) => (
+            {[...Array(MAX_SECURITY_SCORE)].map((_, i) => (
               <motion.div
                 key={i}
                 initial={{ scale: 0 }}
@@ -43,14 +43,6 @@ export function SecurityOverview({ user }: SecurityOverviewProps) {
           message={user.email_confirmed_at 
             ? 'Your email is verified'
             : 'Please verify your email'
-          }
-        />
-        <SecurityItem
-          title="Two-Factor Authentication"
-          status={user.factors?.length ? 'complete' : 'warning'}
-          message={user.factors?.length
-            ? '2FA is enabled'
-            : 'Enable 2FA for better security'
           }
         />
         <SecurityItem
@@ -95,11 +87,12 @@ function SecurityItem({ title, status, message }: SecurityItemProps) {
   );
 }
 
+const MAX_SECURITY_SCORE = 4;
+
 function calculateSecurityScore(user: User): number {
   let score = 1; // Base score
 
   if (user.email_confirmed_at) score++;
-  if (user.factors?.length) score++;
   if (user.phone) score++;
   if (user.updated_at && isRecentlyUpdated(user.updated_at)) score++;
 

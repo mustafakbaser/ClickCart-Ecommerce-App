@@ -1,7 +1,6 @@
 import { User } from '@supabase/supabase-js';
 import { motion } from 'framer-motion';
 import { PasswordChange } from './security/PasswordChange';
-import { TwoFactorAuth } from './security/TwoFactorAuth';
 import { SecurityOverview } from './security/SecurityOverview';
 import { Shield } from 'lucide-react';
 
@@ -50,9 +49,6 @@ export function SecuritySettings({ user }: SecuritySettingsProps) {
         <motion.div variants={itemVariants}>
           <PasswordChange />
         </motion.div>
-        <motion.div variants={itemVariants}>
-          <TwoFactorAuth />
-        </motion.div>
       </div>
 
       <motion.div 
@@ -62,8 +58,8 @@ export function SecuritySettings({ user }: SecuritySettingsProps) {
         <p className="flex items-center">
           <span className="font-medium">Security tip:</span>
           <span className="ml-2">
-            Enable two-factor authentication for an extra layer of security. 
-            Never share your password or verification codes with anyone.
+            Use a strong password that you don't use anywhere else,
+            and never share it with anyone.
           </span>
         </p>
       </motion.div>
