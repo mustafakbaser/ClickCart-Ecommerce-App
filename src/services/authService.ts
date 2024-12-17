@@ -38,34 +38,3 @@ export async function updatePassword(currentPassword: string, newPassword: strin
     return { error: error as AuthError };
   }
 }
-
-export async function enable2FA(): Promise<{ error: AuthError | null; url?: string }> {
-  try {
-    const { data, error } = await supabase.auth.mfa.enroll({
-      factorType: 'totp'
-    });
-
-    if (error) throw error;
-
-    return { error: null, url: data.totp.qr_code };
-  } catch (error) {
-    console.error('Error enabling 2FA:', error);
-    return { error: error as AuthError };
-  }
-}
-
-export async function verify2FACode(code: string): Promise<{ error: AuthError | null }> {
-  try {
-    const { error } = await supabase.auth.mfa.challenge({
-      factorId: 'totp',
-      code,
-    });
-
-    if (error) throw error;
-
-    return { error: null };
-  } catch (error) {
-    console.error('Error verifying 2FA code:', error);
-    return { error: error as AuthError };
-  }
-}
