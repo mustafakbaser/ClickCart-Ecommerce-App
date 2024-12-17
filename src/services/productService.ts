@@ -140,14 +140,21 @@ export async function getFeaturedProducts(): Promise<Product[]> {
   }
 }
 
+// Admin only: RLS lets only users in public.admin_users write products.
+// A blocked update matches no rows instead of returning an error, so check
+// that a row was actually updated.
 export async function updateProductStock(id: string, quantity: number): Promise<void> {
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('products')
       .update({ stock: quantity })
-      .eq('id', id);
+      .eq('id', id)
+      .select('id');
 
     if (error) throw error;
+    if (!data || data.length === 0) {
+      throw new Error('Product not found or you do not have permission to update it');
+    }
   } catch (error) {
     console.error('Error updating product stock:', error);
     throw error;
