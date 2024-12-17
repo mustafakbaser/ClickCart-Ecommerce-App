@@ -3,14 +3,26 @@ import { supabase } from '../lib/supabase';
 
 export async function updatePassword(currentPassword: string, newPassword: string): Promise<{ error: AuthError | null }> {
   try {
-    // First verify the current password by attempting to sign in
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError) throw userError;
+    if (!user?.email) {
+      return { error: new Error('You must be signed in to change your password') as AuthError };
+    }
+
+    // Verify the current password by re-authenticating the signed-in user
     const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: supabase.auth.getUser().then(({ data }) => data.user?.email || ''),
+      email: user.email,
       password: currentPassword,
     });
 
     if (signInError) {
-      return { error: new Error('Current password is incorrect') as AuthError };
+      // 400 means invalid credentials; pass other errors (e.g. rate limits) through unchanged
+      return {
+        error: signInError.status === 400
+          ? new Error('Current password is incorrect') as AuthError
+          : signInError,
+      };
     }
 
     // If current password is correct, update to new password
