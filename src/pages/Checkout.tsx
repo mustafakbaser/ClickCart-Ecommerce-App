@@ -7,6 +7,7 @@ import { PaymentForm } from '../components/checkout/PaymentForm';
 import { OrderReview } from '../components/checkout/OrderReview';
 import { CheckoutFormData } from '../types/checkout';
 import { createOrder } from '../services/checkoutService';
+import { formatCurrency } from '../lib/utils';
 
 const initialFormData: CheckoutFormData = {
   shippingAddress: {
