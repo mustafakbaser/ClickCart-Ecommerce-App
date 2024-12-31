@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { Order } from '../types/profile';
+import type { Json } from '../lib/database.types';
 
 export async function getOrders(userId: string): Promise<Order[]> {
   try {
@@ -37,50 +38,26 @@ export async function getOrders(userId: string): Promise<Order[]> {
   }
 }
 
-export async function createOrder(
-  userId: string,
-  orderData: {
-    items: Array<{ product_id: string; quantity: number; price: number }>;
-    total: number;
-    shipping_address: any;
-    billing_address: any;
-    shipping_method: string;
-    payment_method: string;
-  }
-) {
+// Orders are created by the create_order() database function from the
+// signed-in user's cart: prices, shipping, tax and the total are computed on
+// the server, and the cart is emptied in the same transaction.
+export async function createOrder(orderData: {
+  shipping_address: Json;
+  billing_address: Json;
+  shipping_method: string;
+  payment_method: string;
+}) {
   try {
-    // Start a Supabase transaction
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        user_id: userId,
-        total: orderData.total,
-        shipping_address: orderData.shipping_address,
-        billing_address: orderData.billing_address,
-        shipping_method: orderData.shipping_method,
-        payment_method: orderData.payment_method,
-        status: 'pending'
-      })
-      .select('id')
-      .single();
+    const { data: orderId, error } = await supabase.rpc('create_order', {
+      p_shipping_address: orderData.shipping_address,
+      p_billing_address: orderData.billing_address,
+      p_shipping_method: orderData.shipping_method,
+      p_payment_method: orderData.payment_method,
+    });
 
-    if (orderError) throw orderError;
+    if (error) throw error;
 
-    // Insert order items
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(
-        orderData.items.map(item => ({
-          order_id: order.id,
-          product_id: item.product_id,
-          quantity: item.quantity,
-          price: item.price
-        }))
-      );
-
-    if (itemsError) throw itemsError;
-
-    return { orderId: order.id };
+    return { orderId };
   } catch (error) {
     console.error('Error creating order:', error);
     throw error;

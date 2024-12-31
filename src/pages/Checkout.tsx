@@ -58,7 +58,7 @@ export function Checkout() {
     setError(null);
 
     try {
-      const result = await createOrder(items, formData);
+      const result = await createOrder(formData);
       
       if ('error' in result) {
         setError(result.error);

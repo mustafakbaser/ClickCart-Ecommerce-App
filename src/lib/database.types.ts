@@ -1,3 +1,11 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 export interface Profile {
   id: string;
   full_name: string;
@@ -21,7 +29,15 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      create_order: {
+        Args: {
+          p_shipping_address: Json;
+          p_billing_address: Json;
+          p_shipping_method: string;
+          p_payment_method: string;
+        };
+        Returns: string;
+      };
     };
     Enums: {
       [_ in never]: never;

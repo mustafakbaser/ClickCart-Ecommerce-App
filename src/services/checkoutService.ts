@@ -1,25 +1,14 @@
-import { supabase } from '../lib/supabase';
 import { CartItem } from '../types';
 import { CheckoutFormData, OrderSummary } from '../types/checkout';
 import * as orderService from './orderService';
 
+// Items, prices and the total are taken from the database cart by
+// create_order(); the cart is cleared there too.
 export async function createOrder(
-  items: CartItem[],
   formData: CheckoutFormData
 ): Promise<{ orderId: string } | { error: string }> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const orderSummary = calculateOrderSummary(items, formData.shippingMethod);
-
-    const result = await orderService.createOrder(user.id, {
-      items: items.map(item => ({
-        product_id: item.id,
-        quantity: item.quantity,
-        price: item.price
-      })),
-      total: orderSummary.total,
+    const result = await orderService.createOrder({
       shipping_address: formData.shippingAddress,
       billing_address: formData.billingAddress.sameAsShipping 
         ? formData.shippingAddress 
@@ -27,12 +16,6 @@ export async function createOrder(
       shipping_method: formData.shippingMethod,
       payment_method: formData.paymentMethod
     });
-
-    // Clear cart after successful order
-    await supabase
-      .from('cart_items')
-      .delete()
-      .eq('user_id', user.id);
 
     return { orderId: result.orderId };
   } catch (error) {
@@ -57,6 +40,8 @@ export function calculateOrderSummary(
   };
 }
 
+// Display only: create_order() in the database has the same prices and is
+// what actually gets charged. Keep both in sync.
 export function getShippingMethods() {
   return [
     {
