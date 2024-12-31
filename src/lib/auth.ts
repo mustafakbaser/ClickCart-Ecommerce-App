@@ -25,23 +25,11 @@ export async function signUp(email: string, password: string, fullName: string):
       return { user: null, error: new Error('No user data returned') as AuthError };
     }
 
-    const { error: profileError } = await supabase.from('profiles').upsert({
-      id: authData.user.id,
-      full_name: fullName,
-      email: email,
-      updated_at: new Date().toISOString(),
-    });
-
-    if (profileError) {
-      console.error('Profile creation error:', profileError);
-      return { 
-        user: null, 
-        error: new Error('Failed to create user profile: ' + profileError.message) as AuthError 
-      };
-    }
-
-    return { 
-      user: authData.user, 
+    // The profile row is created by the create_profile_for_new_user database
+    // trigger. With email confirmation on there is no session yet, so the user
+    // is not signed in until they confirm and log in.
+    return {
+      user: authData.session ? authData.user : null,
       error: null,
       message: 'Please check your email for confirmation link'
     };
